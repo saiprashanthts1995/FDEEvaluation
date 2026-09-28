@@ -59,6 +59,13 @@ print(f"Deployment message: {served.state.deployment_state_message}")
 
 # MAGIC %md
 # MAGIC ## 2. Send live requests (enabled — wakes a scaled-to-zero endpoint)
+# MAGIC
+# MAGIC Each request retries with a 20s backoff (up to 6 attempts) if it hits the
+# MAGIC transient "model server has crashed unexpectedly or the maximum request
+# MAGIC limit has been reached" error — confirmed this is a real free-tier
+# MAGIC scale-from-zero race, not a genuine failure: retrying the identical request
+# MAGIC seconds later succeeds. `cold_start_retries` in the output tells you how
+# MAGIC many retries were actually needed.
 
 # COMMAND ----------
 
@@ -75,20 +82,41 @@ if RUN_LIVE_REQUESTS:
 
     client = w.serving_endpoints.get_open_ai_client()
     latencies = []
+    cold_start_retries = 0
+
+    def ask_with_retry(question, max_attempts=6, backoff_seconds=20):
+        """Free-tier scale-to-zero cold starts can transiently return
+        'model server has crashed unexpectedly or the maximum request limit
+        has been reached' while the container is still spinning up — this is
+        not a real failure, confirmed by retrying the same request
+        successfully seconds later. Retry with backoff instead of failing
+        the whole cell on the first attempt."""
+        global cold_start_retries
+        last_error = None
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return client.responses.create(
+                    model=endpoint_name,
+                    input=[{"role": "user", "content": question}],
+                    extra_body={"custom_inputs": {"session_id": "monitoring-demo"}},
+                )
+            except Exception as e:
+                last_error = e
+                cold_start_retries += 1
+                print(f"  attempt {attempt}/{max_attempts} failed ({e}); waiting {backoff_seconds}s and retrying...")
+                time.sleep(backoff_seconds)
+        raise last_error
 
     for q in test_questions:
         start = time.time()
-        response = client.responses.create(
-            model=endpoint_name,
-            input=[{"role": "user", "content": q}],
-            extra_body={"custom_inputs": {"session_id": "monitoring-demo"}},
-        )
+        response = ask_with_retry(q)
         elapsed = time.time() - start
         latencies.append(elapsed)
         print(f"[{elapsed:.2f}s] Q: {q}")
         print(f"  A: {str(response.output)[:200]}...")
 
     print(f"\nLatencies: {[f'{l:.2f}s' for l in latencies]}")
+    print(f"Cold-start retries needed: {cold_start_retries}")
     print(f"First request (cold start likely included): {latencies[0]:.2f}s")
     if len(latencies) > 1:
         print(f"Subsequent requests (warm): {[f'{l:.2f}s' for l in latencies[1:]]}")

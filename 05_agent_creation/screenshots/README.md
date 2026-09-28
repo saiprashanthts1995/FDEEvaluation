@@ -1,6 +1,6 @@
 # Agent Creation Evidence Screenshots
 
-Genuine screenshots from the Databricks workspace, 10 of 12 checklist items plus 3 bonus captures.
+Genuine screenshots from the Databricks workspace, 11 of 12 checklist items plus 3 bonus captures.
 
 | Filename | Evidence | Status |
 |---|---|---|
@@ -14,10 +14,10 @@ Genuine screenshots from the Databricks workspace, 10 of 12 checklist items plus
 | `05-agent-off-domain.png` | The same agent asked an off-domain question — answered "Paris" instead of declining, the real observed effect of the missing `SYSTEM_PROMPT` (see main README). | Done |
 | `06-mlflow-trace.png` | The endpoint's Traces tab — 9 real traces, 100% pass on Relevance and Safety, including tool-calling traces (return policy, waterproof jacket) alongside the off-domain one. | Done |
 | `07-broken-eval-rows.png` | The full evaluation-run detail page — per-turn breakdown for all 10 rows, showing Turn 2 (multi-tool composition test) failing `Retrieval relevance`, and Turns 3–6/8–10 showing `Error` on the two retrieval-specific scorers since those turns used UC functions, not vector search. | Done |
-| `08-root-cause-trace.png` | `04_tracing_and_root_cause.py`'s trace in the MLflow UI, with the failed `execute_tool` span expanded showing the underlying error. | Needed — run `04_tracing_and_root_cause.py` |
+| `08-root-cause-trace.png` | The `VectorSearchRetrieverTool` construction failing immediately with a clear Unity Catalog error (index doesn't exist) — the root cause was found before the agent even ran, not by digging through a failed trace span. See main README's "Root Cause: What Actually Happened" for the more interesting follow-on finding (the agent then answered from ungrounded general knowledge instead of erroring). | Done |
 | `09-endpoint-metrics.png` | The serving endpoint's Metrics tab — latency, request rate, error rate, CPU usage, all live. | Done |
-| `10-live-request-latency.png` | `05_deployment_monitoring.py` §2 output — cold-start vs. warm request latencies. | Needed — run `05_deployment_monitoring.py` (already set to `RUN_LIVE_REQUESTS = True`) |
+| `10-live-request-latency.png` | `05_deployment_monitoring.py` §2 output — cold-start vs. warm request latencies. | Needed — run `05_deployment_monitoring.py` (already set to `RUN_LIVE_REQUESTS = True`, ready to go) |
 
 Only mark evidence complete when the corresponding screenshot exists and shows the actual session result. Do not create placeholder images or invent evaluation scores.
 
-`03`, `04`, `06`, `09` and the three `05-agent-*` files come from live UI browsing and REST calls (via `../../lightweight_evidence_3_4_5.py`) against the real deployed `sai_agent_model` endpoint. `01`, `02`, `07` come from an actual run of `03_agent_evaluation.py`. `08`, `10` still need `04_tracing_and_root_cause.py` and `05_deployment_monitoring.py` run — both unblocked now that the missing second `restartPython()` cell has been fixed.
+`03`, `04`, `06`, `09` and the three `05-agent-*` files come from live UI browsing and REST calls (via `../../lightweight_evidence_3_4_5.py`) against the real deployed `sai_agent_model` endpoint. `01`, `02`, `07` come from an actual run of `03_agent_evaluation.py`. `08` comes from an actual run of `04_tracing_and_root_cause.py`. `10` is the only item left, from `05_deployment_monitoring.py`.

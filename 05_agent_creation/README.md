@@ -51,8 +51,8 @@ Every Databricks resource the agent depends on (the LLM endpoint, the vector ind
 | 1. First Tool-Calling Agent (single UC function tool) | Not rebuilt as a separate step — the ported `agent.py` is the actual final multi-tool version, not a from-scratch progression. Confirmed the agent decides when to call a tool vs. answer directly: it correctly routed a product question to `product_index`, a policy question to `get_policy_details`, and answered an off-domain question with neither (see the three `05-agent-*.png` screenshots). |
 | 2. Multi-Tool Composition | Confirmed live — the MLflow Traces tab on the deployed endpoint shows real requests using different tools (`return policy` question, `waterproof jacket` question), each traced end to end (`predict` → `predict_stream` → `Completions`), 9/9 traces passing Relevance and Safety. See the Genie gap below for a fourth tool that isn't wired in. |
 | 3. Evaluation Before Trust | Run — `03_agent_evaluation.py`, 10 questions, 4 scorers, real MLflow evaluation run logged. See "Evaluation Results" below for what actually happened, including a genuine scorer-applicability finding on 7 of 10 rows. |
-| 4. Tracing and Root Cause Analysis | `04_tracing_and_root_cause.py` is written and unblocked by the `restartPython()` fix — running it and capturing `08` is the next step. |
-| 5. Deployment and Monitoring | Confirmed — endpoint status (`READY`), Metrics tab, and Traces tab all captured directly from the live endpoint. `05_deployment_monitoring.py`'s optional live-latency measurement (`10`) not yet captured separately. |
+| 4. Tracing and Root Cause Analysis | Run — `04_tracing_and_root_cause.py`. Found something more interesting than the notebook was designed to demonstrate; see "Root Cause: What Actually Happened" below. |
+| 5. Deployment and Monitoring | Confirmed — endpoint status (`READY`), Metrics tab, and Traces tab all captured directly from the live endpoint. `05_deployment_monitoring.py`'s live-latency measurement (`10`) is the last item, ready to run (`RUN_LIVE_REQUESTS = True` already set). |
 
 ## Confirmed From the Live Endpoint
 
@@ -73,6 +73,16 @@ This is expected behavior for retrieval-specific scorers applied to a mixed-tool
 
 One real per-row result, not just an aggregate artifact: **Turn 2** ("I want a waterproof jacket — what's the return policy if it doesn't fit?", the multi-tool-composition test) passed Relevance and Groundedness but **failed Retrieval Relevance** — worth a closer look at that specific trace before trusting multi-tool answers generally.
 
+## Root Cause: What Actually Happened
+
+`04_tracing_and_root_cause.py` builds a second agent instance with its vector-search tool pointed at a nonexistent index, expecting the failure to surface as a failed `execute_tool` span partway through a trace. **That's not what happened, and the real result is more informative:**
+
+The `VectorSearchRetrieverTool` constructor itself raised immediately — *"Tool construction itself failed: Unity Catalog entity `uc_agentic_ai.agentic_ai_schema.this_index_does_not_exist` does not exist."* This SDK version validates the index at construction time, before the agent is even built. Caught by the notebook's own `try/except`, so `broken_agent` ended up built with only 2 tools (the working UC functions) — the broken vector-search tool was never added at all, not added-then-failing.
+
+With no vector-search tool available, asking *"What's a good waterproof jacket for hiking?"* **did not error.** The agent answered anyway — a long, well-formatted recommendation citing Patagonia, Marmot, Outdoor Research, and Arc'teryx, none of which exist in the actual product catalog. The trace confirms this: `status: OK`, 2,012 tokens, 7.92s latency, no failed span anywhere in `predict` → `predict_stream` → `Completions`. The agent silently fell back to the LLM's general knowledge instead of declining or reporting a missing capability.
+
+This is the same root issue as the empty-`SYSTEM_PROMPT` finding above, showing up a second way: it's not just that off-domain questions get answered from outside knowledge — a **missing tool** produces the identical failure mode, an answer that looks correct but cites brands this catalog doesn't sell. A production version of this agent needs either a system-prompt instruction to decline when a needed tool is unavailable, or explicit tool-failure handling in `call_and_run_tools` that surfaces "I couldn't search the catalog right now" instead of letting the LLM improvise. Neither is fixed here, per the same policy as the `SYSTEM_PROMPT` gap — it's a real behavior change to a deployed agent.
+
 ## Known Gaps (found while porting, not fixed silently)
 
 1. **Empty `SYSTEM_PROMPT` — confirmed, not just theoretical.** The live agent has no system prompt at all. Tested directly: asked the real deployed endpoint *"What is the capital of France?"* — it answered **"The capital of France is Paris"** instead of declining. The equivalent question run through `04_rag/notebooks/02_rag_retrieval_demo.py`'s standalone RAG demo (which *does* have an explicit grounding system prompt) correctly declined to answer from outside knowledge. Same underlying model, same kind of off-domain question — the only difference is the system prompt, and it visibly changes whether the agent stays grounded (see `screenshots/05-agent-off-domain.png` vs. `04_rag/screenshots/04-grounding-refusal-check.png`). Worth adding before this agent is treated as production-ready; not changed here without your review since it changes deployed behavior.
@@ -85,10 +95,9 @@ Both UC functions (`04_rag/notebooks/01_build_agent_tools.py`) and the vector in
 `deploy_agent.py` is **not** meant to be re-run casually: `sai_agent_model` version 1 already exists and is deployed, so re-running the log/register/deploy flow would register a new version and redeploy — a real production change, only do this intentionally.
 
 What's left to capture:
-1. `04_tracing_and_root_cause.py` — run for `08-root-cause-trace.png`.
-2. `05_deployment_monitoring.py` (already set to `RUN_LIVE_REQUESTS = True`) — for `10-live-request-latency.png`.
+1. `05_deployment_monitoring.py` (already set to `RUN_LIVE_REQUESTS = True`) — for `10-live-request-latency.png`.
 
-Both are unblocked (the missing `dbutils.library.restartPython()` cell before `from agent import AGENT` was the actual blocker for notebooks that import `agent.py`, fixed in all affected notebooks; `05_deployment_monitoring.py` never needed it since it talks to the endpoint via `WorkspaceClient` directly).
+That's the only item remaining. `04_tracing_and_root_cause.py` has been run — see "Root Cause: What Actually Happened" above.
 
 ## Evidence
 
