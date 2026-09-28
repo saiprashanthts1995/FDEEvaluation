@@ -135,14 +135,25 @@ else:
 
 # COMMAND ----------
 
-traces = mlflow.search_traces(experiment_ids=[mlflow_experiment_id], max_results=10, order_by=["timestamp_ms DESC"])
+traces = mlflow.search_traces(locations=[mlflow_experiment_id], max_results=10)
 
 if len(traces) == 0:
     print("No traces yet — run Section 2, or query the live endpoint from AI Playground first.")
 else:
+    print(f"Columns returned by this MLflow version: {list(traces.columns)}\n")
     print(f"Most recent {len(traces)} traces:\n")
+
+    def first_present(row, candidates, default="n/a"):
+        for c in candidates:
+            if c in row and row[c] is not None:
+                return row[c]
+        return default
+
     for _, trace in traces.iterrows():
-        print(f"  {trace['timestamp_ms']}  status={trace['status']}  duration_ms={trace.get('execution_time_ms', 'n/a')}")
+        ts = first_present(trace, ["timestamp_ms", "request_time", "start_time_ms", "start_time"])
+        status = first_present(trace, ["status", "state"])
+        duration = first_present(trace, ["execution_time_ms", "execution_duration"])
+        print(f"  {ts}  status={status}  duration={duration}")
 
 # COMMAND ----------
 
