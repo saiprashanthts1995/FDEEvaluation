@@ -2,10 +2,9 @@
 # MAGIC %md
 # MAGIC # Tool-Calling Agent: Log, Evaluate, Register, Deploy
 # MAGIC
-# MAGIC Ported from [`saiprashanthts1995/databricks_agentic_ai/02_Notebooks/Agent databricks-gpt-oss-120b .../Agent creation.py`](https://github.com/saiprashanthts1995/databricks_agentic_ai/blob/main/02_Notebooks/Agent%20databricks-gpt-oss-120b%202026-09-27%2017%3A25%3A37/Agent%20creation.py)
-# MAGIC (originally an AI Playground export), where this agent was actually logged,
-# MAGIC evaluated, registered, and deployed. **This is not a proposal** — the model it
-# MAGIC produces is live today:
+# MAGIC This agent was actually logged, evaluated, registered, and deployed
+# MAGIC (originally an AI Playground export). **This is not a proposal** — the model
+# MAGIC it produces is live today:
 # MAGIC
 # MAGIC | | |
 # MAGIC |---|---|

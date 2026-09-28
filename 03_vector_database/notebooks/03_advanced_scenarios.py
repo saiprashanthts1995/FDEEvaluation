@@ -12,6 +12,11 @@
 
 # COMMAND ----------
 
+# MAGIC %pip install -q databricks-vectorsearch
+# MAGIC dbutils.library.restartPython()
+
+# COMMAND ----------
+
 catalog = "uc_agentic_ai"
 schema = "agentic_ai_schema"
 endpoint_name = "ai_search_endpoint"

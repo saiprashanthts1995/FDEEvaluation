@@ -16,8 +16,8 @@ A tool-calling agent that routes between semantic product search, structured pol
 
 ## What's Here
 
-- [`notebooks/agent.py`](notebooks/agent.py) — the agent definition itself (MLflow `ResponsesAgent`, tool-calling loop). Ported from [`saiprashanthts1995/databricks_agentic_ai`](https://github.com/saiprashanthts1995/databricks_agentic_ai/blob/main/02_Notebooks/Agent%20databricks-gpt-oss-120b%202026-09-27%2017%3A25%3A37/agent.py), where it was originally authored (an AI Playground export) and is the exact code backing the live endpoint.
-- [`notebooks/deploy_agent.py`](notebooks/deploy_agent.py) — logs, evaluates, registers, and deploys `agent.py`. Ported from the same source repo's `Agent creation.py`.
+- [`notebooks/agent.py`](notebooks/agent.py) — the agent definition itself (MLflow `ResponsesAgent`, tool-calling loop), originally authored as an AI Playground export, and the exact code backing the live endpoint.
+- [`notebooks/deploy_agent.py`](notebooks/deploy_agent.py) — logs, evaluates, registers, and deploys `agent.py`.
 - [`notebooks/03_agent_evaluation.py`](notebooks/03_agent_evaluation.py) — a real 10-question eval set (not the original's 1) across all 3 tools plus deliberate edge cases, using all 4 scorers (not 2). Evaluates the local `AGENT` object — doesn't touch the deployed model.
 - [`notebooks/04_tracing_and_root_cause.py`](notebooks/04_tracing_and_root_cause.py) — deliberately breaks a tool on a local agent instance and walks through finding the root cause via its MLflow trace's span tree, without reading `agent.py`'s full call chain manually.
 - [`notebooks/05_deployment_monitoring.py`](notebooks/05_deployment_monitoring.py) — endpoint status/config (read-only), optional live requests with cold-start latency measurement (disabled by default — costs compute), and pulling per-request traces from the endpoint's MLflow experiment.

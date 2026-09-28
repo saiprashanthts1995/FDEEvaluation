@@ -31,6 +31,11 @@
 
 # COMMAND ----------
 
+# MAGIC %pip install -q databricks-vectorsearch
+# MAGIC dbutils.library.restartPython()
+
+# COMMAND ----------
+
 dbutils.widgets.text("catalog", "uc_agentic_ai", "UC Catalog")
 dbutils.widgets.text("schema", "agentic_ai_schema", "UC Schema")
 dbutils.widgets.text("source_table", "product_master", "Source table")
