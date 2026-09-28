@@ -10,7 +10,23 @@
       "Bash(cp /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/images/3.png /Users/saiprashanththalanayarswaminathan/Documents/GitHub/FDEEvaluation/02_genie_space/screenshots/02-product-category-sql.png)",
       "Bash(cp /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/images/4.png /Users/saiprashanththalanayarswaminathan/Documents/GitHub/FDEEvaluation/02_genie_space/screenshots/03-product-category-summary.png)",
       "Bash(cp /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/images/5.png /Users/saiprashanththalanayarswaminathan/Documents/GitHub/FDEEvaluation/02_genie_space/screenshots/04-product-category-visualization.png)",
-      "Bash(cp /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/images/6.png /Users/saiprashanththalanayarswaminathan/Documents/GitHub/FDEEvaluation/02_genie_space/screenshots/05-genie-agents-list.png)"
+      "Bash(cp /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/images/6.png /Users/saiprashanththalanayarswaminathan/Documents/GitHub/FDEEvaluation/02_genie_space/screenshots/05-genie-agents-list.png)",
+      "Bash(gh api *)",
+      "Bash(python3 -c ' *)",
+      "Bash(gh auth *)",
+      "Bash(curl -s \"https://api.github.com/repos/saiprashanthts1995/databricks_agentic_ai/contents/02_Notebooks\")",
+      "Bash(curl -s \"https://api.github.com/repos/saiprashanthts1995/databricks_agentic_ai/contents/02_Notebooks/Agent%20databricks-gpt-oss-120b%202026-09-27%2017%3A25%3A37\")",
+      "Bash(curl -s https://raw.githubusercontent.com/saiprashanthts1995/databricks_agentic_ai/main/02_Notebooks/Build_RAG_Agent_Tables.py -o /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/scratchpad/Build_RAG_Agent_Tables.py)",
+      "Bash(curl -s https://raw.githubusercontent.com/saiprashanthts1995/databricks_agentic_ai/main/02_Notebooks/Agent%20databricks-gpt-oss-120b%202026-09-27%2017%3A25%3A37/Agent%20creation.py -o /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/scratchpad/Agent_creation.py)",
+      "Bash(curl -s https://raw.githubusercontent.com/saiprashanthts1995/databricks_agentic_ai/main/02_Notebooks/Agent%20databricks-gpt-oss-120b%202026-09-27%2017%3A25%3A37/agent.py -o /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/scratchpad/agent.py)",
+      "Bash(curl -s -H 'Authorization: Bearer __TRACKED_VAR__' https://dbc-12598460-8cc9.cloud.databricks.com/api/2.0/fs/directories?directory_path=/Volumes/uc_agentic_ai/agentic_ai_schema/data_files/01_Data_Files/product_docs -o /tmp/pdir.json)",
+      "Bash(rm -f /tmp/pdir.json)",
+      "Bash(curl -s -H 'Authorization: Bearer __TRACKED_VAR__' https://dbc-12598460-8cc9.cloud.databricks.com/api/2.1/unity-catalog/tables/uc_agentic_ai.agentic_ai_schema.product_details)",
+      "Read(//Users/saiprashanththalanayarswaminathan/Documents/GitHub/databricks-app-ui-agent/**)",
+      "Bash(mkdir -p /Users/saiprashanththalanayarswaminathan/Documents/GitHub/FDEEvaluation/06_databricks_app/screenshots *)"
+    ],
+    "additionalDirectories": [
+      "/Users/saiprashanththalanayarswaminathan/Documents/GitHub/databricks-app-ui-agent/screenshots"
     ]
   }
 }
