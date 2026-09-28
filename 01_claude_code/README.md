@@ -47,6 +47,14 @@ MCP access is not verified merely because the configuration exists — a success
 
    ![Code review findings](screenshots/07-code-review.png)
 
+   **Reproduce → diagnose → fix → verify, closed out:** the join and comment issues above were identified but not actually fixed in the original session — `uc_headcount_metric_proposal.sql` still had the plain `JOIN` and the contradictory comment. Closing that loop:
+   - **Reproduce:** confirmed the current `shared_data/tables/*.csv` has zero orphaned employees or zero-employee departments — meaning the bug was real but silent on this dataset, which is exactly why it survived a first pass unnoticed.
+   - **Diagnose:** simulated the plain `JOIN` against a synthetic orphan employee (`department_id` with no matching department) and a synthetic zero-employee department. Confirmed both were silently dropped from the result entirely — 1 of 13 employees and 1 of 5 departments vanished with no error.
+   - **Fix:** changed the view to a `FULL OUTER JOIN` with `COALESCE(..., 'UNRESOLVED_DEPARTMENT_ID')`, and corrected the comment to state Former employees *are* included as their own labeled column (matching what the view has always actually done).
+   - **Verify:** re-ran the same synthetic-orphan simulation against the fixed join logic — both the orphaned employee and the zero-employee department now surface explicitly instead of disappearing, and the fix produces identical output to the original on today's real (clean) data, confirming no regression.
+
+   See the verification note directly in [`shared_data/uc_headcount_metric_proposal.sql`](../shared_data/uc_headcount_metric_proposal.sql) for the fixed SQL.
+
 8. **GitHub MCP connected and verified read-only.** `/mcp` confirmed the GitHub MCP server was connected and authenticated against the read-only repository endpoint, with the token kept out of view.
 
    ![GitHub MCP status](screenshots/08-github-mcp-status.png)

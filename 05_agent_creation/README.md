@@ -18,6 +18,9 @@ A tool-calling agent that routes between semantic product search, structured pol
 
 - [`notebooks/agent.py`](notebooks/agent.py) — the agent definition itself (MLflow `ResponsesAgent`, tool-calling loop). Ported from [`saiprashanthts1995/databricks_agentic_ai`](https://github.com/saiprashanthts1995/databricks_agentic_ai/blob/main/02_Notebooks/Agent%20databricks-gpt-oss-120b%202026-09-27%2017%3A25%3A37/agent.py), where it was originally authored (an AI Playground export) and is the exact code backing the live endpoint.
 - [`notebooks/deploy_agent.py`](notebooks/deploy_agent.py) — logs, evaluates, registers, and deploys `agent.py`. Ported from the same source repo's `Agent creation.py`.
+- [`notebooks/03_agent_evaluation.py`](notebooks/03_agent_evaluation.py) — a real 10-question eval set (not the original's 1) across all 3 tools plus deliberate edge cases, using all 4 scorers (not 2). Evaluates the local `AGENT` object — doesn't touch the deployed model.
+- [`notebooks/04_tracing_and_root_cause.py`](notebooks/04_tracing_and_root_cause.py) — deliberately breaks a tool on a local agent instance and walks through finding the root cause via its MLflow trace's span tree, without reading `agent.py`'s full call chain manually.
+- [`notebooks/05_deployment_monitoring.py`](notebooks/05_deployment_monitoring.py) — endpoint status/config (read-only), optional live requests with cold-start latency measurement (disabled by default — costs compute), and pulling per-request traces from the endpoint's MLflow experiment.
 
 ## Architecture
 
@@ -40,10 +43,20 @@ Every Databricks resource the agent depends on (the LLM endpoint, the vector ind
 
 `agent.py`'s `VectorSearchRetrieverTool` had a `# TODO: specify index description for better agent tool selection` left unfilled in the original. Filled in here with a real description ("Semantic search over the product catalog... not for exact policy or customer lookups") since an empty tool description makes it harder for the LLM to pick the right tool — but **this version has not been redeployed**, so the live endpoint is still running with the original blank description. Redeploying with this fix would require re-running `deploy_agent.py`'s log/register/deploy steps, which is a real change to production behavior and needs the same approval as any other deployment.
 
+## Scenario Coverage
+
+| Scenario | Status |
+|---|---|
+| 1. First Tool-Calling Agent (single UC function tool) | Not rebuilt as a separate step — the ported `agent.py` is the actual final multi-tool version, not a from-scratch progression. `03_agent_evaluation.py`'s rows 1–3 (each targeting exactly one tool) substitute for "does it decide when to call a tool vs. answer directly." |
+| 2. Multi-Tool Composition | Done — 3 tools (vector search + 2 UC functions) — see the Genie gap below for a fourth tool that isn't wired in. |
+| 3. Evaluation Before Trust | Done — `03_agent_evaluation.py`, 10 questions, 4 scorers. |
+| 4. Tracing and Root Cause Analysis | Done — `04_tracing_and_root_cause.py`, against a local broken instance rather than the live endpoint. |
+| 5. Deployment and Monitoring | Done — `05_deployment_monitoring.py`, endpoint status, live request latency, and MLflow trace pull. |
+
 ## Known Gaps (found while porting, not fixed silently)
 
 1. **Empty `SYSTEM_PROMPT`.** The live agent has no system prompt at all — no explicit instruction to stay grounded in tool results rather than the LLM's general knowledge, unlike the grounding discipline enforced in `04_rag/notebooks/02_rag_retrieval_demo.py`'s standalone RAG demo. Worth adding before this agent is treated as production-ready; not changed here without your review since it changes deployed behavior.
-2. **Thin evaluation.** `deploy_agent.py`'s evaluation run uses only `RelevanceToQuery` and `Safety` on a single example with no expected response. `RetrievalGroundedness` and `RetrievalRelevance` are imported in the original but never actually used as scorers — those two specifically check whether the agent's answer is supported by what was retrieved, which the two active scorers don't catch. A single ungrounded example wouldn't fail evaluation today.
+2. **No Genie tool.** This agent uses vector search + two UC functions, with no Genie integration at all, even though `02_genie_space/` has a working Genie Space on the same data. Wiring Genie in as a fourth tool (e.g. via the Genie Conversation API, similar to `02_genie_space/notebooks/genie_api_conversation.py`, wrapped as a callable tool) would let the agent answer aggregate/analytical questions ("how many products in Electronics?") that none of its current 3 tools handle well — `product_index` retrieves individual products, not counts. Not added here since it's a real architecture and behavior change to a deployed agent, not a documentation gap.
 
 ## Running It
 

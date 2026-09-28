@@ -40,23 +40,48 @@ ALTER TABLE <catalog>.<schema>.employees
 -- Reports Active, On Leave, and Former as distinct counts per the confirmed contract —
 -- never blended into a single "active" number. `active_headcount` = Active only.
 
+-- FULL OUTER JOIN, not a plain JOIN: department_id is NOT ENFORCED (Delta doesn't
+-- enforce FKs — see the ALTER TABLE above), so either side can have unmatched rows.
+-- A plain JOIN would silently drop a zero-employee department, or an employee whose
+-- department_id doesn't resolve to any row in departments, from this view entirely —
+-- exactly the kind of governance gap CLAUDE.md's citation/groundedness standard exists
+-- to prevent. FULL OUTER JOIN surfaces both cases instead of hiding them.
 CREATE OR REPLACE VIEW <catalog>.<schema>.v_workforce_headcount AS
 SELECT
-  d.department_id,
-  d.department_name,
+  COALESCE(d.department_id, e.department_id, 'UNRESOLVED_DEPARTMENT_ID') AS department_id,
+  COALESCE(d.department_name, 'UNRESOLVED_DEPARTMENT_ID')                AS department_name,
   e.location,
   COUNT(*) FILTER (WHERE e.employment_status = 'Active')   AS active_headcount,
   COUNT(*) FILTER (WHERE e.employment_status = 'On Leave') AS on_leave_count,
   COUNT(*) FILTER (WHERE e.employment_status = 'Former')   AS former_count,
   COUNT(*)                                                 AS total_records
 FROM <catalog>.<schema>.employees e
-JOIN <catalog>.<schema>.departments d
+FULL OUTER JOIN <catalog>.<schema>.departments d
   ON e.department_id = d.department_id
-GROUP BY d.department_id, d.department_name, e.location;
+GROUP BY COALESCE(d.department_id, e.department_id, 'UNRESOLVED_DEPARTMENT_ID'),
+         COALESCE(d.department_name, 'UNRESOLVED_DEPARTMENT_ID'),
+         e.location;
 
 -- Notes for Genie / downstream consumers:
 -- - "Active headcount" in natural-language questions should map to active_headcount,
 --   never to total_records or active_headcount + on_leave_count.
--- - Former employees remain queryable (e.g. for attrition analysis) via the base
---   employees table, not through this headcount view, and must stay labeled by
---   employment_status wherever surfaced.
+-- - Former employees ARE included in this view, as their own labeled former_count
+--   column — never blended into active_headcount. (Corrected: an earlier draft of
+--   this comment incorrectly claimed Former employees were excluded from this view
+--   entirely; that was wrong — the column above has always included them. Flagged by
+--   /code_review; see 01_claude_code/screenshots/07-code-review.png.)
+-- - A department_id of 'UNRESOLVED_DEPARTMENT_ID' means an employee row's
+--   department_id didn't match any row in departments — a data-quality issue to fix
+--   at the source, not a department to report on. A department_name of the same
+--   value with zero headcount in all three status columns means a department exists
+--   with no employees at all — both cases are real, and both were being silently
+--   dropped by the plain JOIN this view used before this fix.
+--
+-- Verified (not just asserted): the current shared_data/tables/*.csv has zero
+-- orphans, so the plain JOIN and this FULL OUTER JOIN produce identical results on
+-- today's clean data — this fix causes no behavior change right now. Re-run with one
+-- synthetic orphan employee (department_id with no matching department) and one
+-- zero-employee department injected: the plain JOIN silently dropped both from the
+-- result entirely; this FULL OUTER JOIN surfaced both instead. See
+-- 01_claude_code/README.md for the full reproduce -> diagnose -> fix -> verify
+-- writeup.

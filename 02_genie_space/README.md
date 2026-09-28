@@ -4,6 +4,11 @@
 
 This assignment builds a Databricks Genie Space for natural-language analytics. It deliberately uses a different use case from the Workforce Insights assistant in [`01_claude_code/`](../01_claude_code/) and the root [`CLAUDE.md`](../CLAUDE.md) — instead of ingesting new data, it reuses Unity Catalog tables that already existed in the workspace, to demonstrate discovery + governed analytics over existing assets.
 
+## What's Here
+
+- [`notebooks/genie_api_conversation.py`](notebooks/genie_api_conversation.py) — programmatic access to the Genie Space via the Conversation API (start a conversation, retrieve generated SQL/results, ask a context-carrying follow-up), no UI involved.
+- [`notebooks/row_level_security.py`](notebooks/row_level_security.py) — builds (but does not apply by default) a Unity Catalog row filter on `cust_service_data`, the governance-validation half of this assignment.
+
 ## Data Source
 
 Inspected read-only via the Unity Catalog REST API (`/api/2.1/unity-catalog/catalogs|schemas|tables`) before building anything, per this repo's engineering standard of not guessing workspace-specific identifiers.
@@ -60,6 +65,24 @@ Catalog: `uc_agentic_ai` · Schema: `agentic_ai_schema`
 6. **Cross-checked with Genie One.** Databricks' cross-agent assistant (Genie One) was asked *"What tables are there and how are they connected? Give me a short summary."* — it independently derived the same schema and join relationships (4 product tables joined on `product_id`, `product_details` joined on `product_name` instead, plus the customer service and policy tables), confirming the space's table wiring is coherent and discoverable at a higher level:
 
    ![Genie One table/relationship summary](screenshots/06-genie-one-table-summary.png)
+
+## Scenario Coverage
+
+| Scenario | Status |
+|---|---|
+| 1. Build a Genie Space with metadata/instructions | Done — space built with 5 tables. **Gap:** no evidence was captured of adding table/column descriptions or sample instructions in the space's Configure panel — see "Still Needs Your Hands" below. |
+| 2. Break and Fix (ambiguous question → improve metadata → verify fix) | **Not done** — see below. |
+| 3. Governance Validation (two user identities, different access levels) | Partially done — [`notebooks/row_level_security.py`](notebooks/row_level_security.py) builds a real row filter on `cust_service_data` (owner sees all rows, everyone else sees none), keyed on `current_user()`. Disabled by default (`APPLY_ROW_FILTER = False`) since it's a real permission change. **Testing it as a second identity still needs your hands** — see below. |
+| 4. Programmatic Access (Genie API) | Done — [`notebooks/genie_api_conversation.py`](notebooks/genie_api_conversation.py), using the real space ID (`01f1bae472291ce6bf70a6de27869978`, confirmed via `GET /api/2.0/genie/spaces`) to start a conversation, retrieve generated SQL, and ask a context-carrying follow-up, entirely through the SDK/REST API. |
+| 5. Business Handoff documentation | Done — this README's "How It Was Built" section documents scope, datasets, and the PII decision on `cust_service_data`. |
+
+### Still Needs Your Hands
+
+Two scenarios need something I don't have: a second Databricks user identity, and your own judgment call about what "ambiguous" means for this domain. Both are genuinely more valuable done by you than faked by me.
+
+**Break and Fix** — ask the Genie Space a deliberately ambiguous question (e.g. *"what's popular?"* or *"show me the top products"* — ambiguous because "popular"/"top" isn't defined anywhere: by count? by category? by price?). Screenshot the confused/wrong answer. Then go to **Configure → Instructions** and add a sample instruction defining the term (e.g. *"'popular products' means the products with the most customer service interactions in `cust_service_data`, joined on product mentions"* — or whatever definition you actually want). Re-ask the same question and screenshot the corrected answer.
+
+**Governance Validation** — `notebooks/row_level_security.py` builds the row filter; you still need to (1) flip `APPLY_ROW_FILTER = True` and run it, (2) grant a second user/service principal `SELECT` on `uc_agentic_ai.agentic_ai_schema.cust_service_data`, and (3) have that identity ask the Genie Space a question touching `cust_service_data`. Screenshot both: your own (full-access) answer, and the restricted identity's response (should fail or return zero rows, not silently return everything). If a second identity isn't practical to set up right now, this scenario is honestly still open — say so rather than skip the screenshot silently.
 
 ## Notes and Caveats
 

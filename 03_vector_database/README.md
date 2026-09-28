@@ -8,6 +8,17 @@ Builds and verifies the Databricks Vector Search index over the product catalog 
 
 - [`notebooks/01_build_product_master_and_index.py`](notebooks/01_build_product_master_and_index.py) — parses 509 product PDFs into `product_details`, joins them into `product_master`, and documents (but does not re-run) the original Vector Search index creation. Ported from the notebook that actually built this: [`saiprashanthts1995/databricks_agentic_ai/02_Notebooks/Build_RAG_Agent_Tables.py`](https://github.com/saiprashanthts1995/databricks_agentic_ai/blob/main/02_Notebooks/Build_RAG_Agent_Tables.py).
 - [`notebooks/02_verify_product_vector_index.py`](notebooks/02_verify_product_vector_index.py) — read-only health, sync-freshness, and retrieval sanity checks against the live index.
+- [`notebooks/03_advanced_scenarios.py`](notebooks/03_advanced_scenarios.py) — freshness test (insert → sync → measure latency → clean up), metadata-filtered search, a Delta Sync vs. Direct Vector Access index comparison, and `top_k` tuning.
+
+## Scenario Coverage
+
+| Scenario | Status |
+|---|---|
+| 1. End-to-end index build (CDF, endpoint, Delta Sync index, `similarity_search()`) | Done — `01_build_product_master_and_index.py` + the live `product_index` verified in `02_verify_product_vector_index.py`. |
+| 2. Freshness test | Done — `03_advanced_scenarios.py` §1. Disabled by default (`RUN_FRESHNESS_TEST = False`) since it writes a test row, even though it cleans up after itself. |
+| 3. Filtered search | Done — `03_advanced_scenarios.py` §2, filters to `product_category = "Electronics"` with an assertion that no other category leaked through. |
+| 4. Index type comparison (Delta Sync vs. Direct Vector Access) | Done — `03_advanced_scenarios.py` §3, a real 10-row Direct Access index built for comparison. Disabled by default (`RUN_DIRECT_ACCESS_DEMO = False`) since it creates a second index. |
+| 5. Query tuning (`top_k=3` vs `top_k=15`) | Done — `03_advanced_scenarios.py` §4. |
 
 ## What's Actually Live (verified read-only before writing any of this)
 
@@ -38,6 +49,7 @@ Most likely this script was an earlier draft and the index was later (re)created
 
 1. `01_build_product_master_and_index.py` — Steps 1–2 (`product_details`, `product_master`) are safe to re-run (`CREATE OR REPLACE TABLE`); Step 3 (index creation) is disabled by default since the index already exists live.
 2. `02_verify_product_vector_index.py` — fully read-only; run any time to confirm the live index is healthy and retrieving correctly.
+3. `03_advanced_scenarios.py` — §2 (filtered search) and §4 (query tuning) are read-only and safe to run any time. §1 (freshness) and §3 (index type comparison) are disabled by default (`RUN_FRESHNESS_TEST` / `RUN_DIRECT_ACCESS_DEMO`) since they write — flip them on deliberately, not as part of an unattended run.
 
 ## Evidence
 
