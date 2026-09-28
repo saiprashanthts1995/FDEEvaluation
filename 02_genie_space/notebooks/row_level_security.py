@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # Row-Level Security on `cust_service_data`
 # MAGIC
@@ -27,7 +31,7 @@ catalog = "uc_agentic_ai"
 schema = "agentic_ai_schema"
 owner_email = "saiprashanthts@gmail.com"  # confirmed via Unity Catalog API — the owner of every table in this schema
 
-APPLY_ROW_FILTER = False  # set True deliberately after reviewing the filter logic below
+APPLY_ROW_FILTER = True  # set True deliberately after reviewing the filter logic below
 
 # COMMAND ----------
 

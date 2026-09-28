@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # Vector Search: Freshness, Filtering, Index Types, and Query Tuning
 # MAGIC

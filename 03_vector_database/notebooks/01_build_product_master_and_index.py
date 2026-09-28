@@ -136,26 +136,9 @@ FROM {catalog}.{schema}.product_master
 
 # COMMAND ----------
 
-# MAGIC %pip install -q databricks-vectorsearch
-# MAGIC dbutils.library.restartPython()
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC The `%pip install` above runs `dbutils.library.restartPython()`, which clears
-# MAGIC Python variables — re-set the config here rather than relying on the Step 0
-# MAGIC cell above.
-
-# COMMAND ----------
-
-catalog = "uc_agentic_ai"
-schema = "agentic_ai_schema"
-RUN_INDEX_CREATION = False  # keep in sync with the Config cell above
-vs_endpoint_name = "agentic_ai_vs_endpoint"
-vs_index_name = f"{catalog}.{schema}.product_master_index"
-embedding_model_endpoint = "databricks-gte-large-en"
-
 if RUN_INDEX_CREATION:
+%pip install -q databricks-vectorsearch
+dbutils.library.restartPython()
     from databricks.vector_search.client import VectorSearchClient
 
     vsc = VectorSearchClient()
