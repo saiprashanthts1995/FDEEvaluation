@@ -13,9 +13,10 @@
 # MAGIC
 # MAGIC **Cost/latency note:** the endpoint is `scale_to_zero_enabled=True`
 # MAGIC (confirmed via the serving-endpoints API). Section 2's live requests will
-# MAGIC trigger a cold start (extra latency on the first request, and real compute
-# MAGIC cost while it's warm) — that section is disabled by default; flip it on
-# MAGIC deliberately.
+# MAGIC trigger a cold start (extra latency on the first request, real compute cost
+# MAGIC while it's warm) — `RUN_LIVE_REQUESTS = True` below, so running this
+# MAGIC notebook top to bottom sends 3 real requests. Set it back to `False` first
+# MAGIC if you just want Sections 1/3/4 (all read-only).
 
 # COMMAND ----------
 
@@ -50,11 +51,11 @@ print(f"Deployment message: {served.state.deployment_state_message}")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 2. Send live requests (disabled by default — wakes a scaled-to-zero endpoint)
+# MAGIC ## 2. Send live requests (enabled — wakes a scaled-to-zero endpoint)
 
 # COMMAND ----------
 
-RUN_LIVE_REQUESTS = False  # set True deliberately — this incurs cold-start latency and real compute cost
+RUN_LIVE_REQUESTS = True  # sends real requests to the live endpoint — incurs cold-start latency and real compute cost
 
 if RUN_LIVE_REQUESTS:
     import time
@@ -134,7 +135,8 @@ else:
 # MAGIC ## Notes
 # MAGIC
 # MAGIC - Section 1 and 3 are fully read-only and safe to run any time. Section 2 is
-# MAGIC   the only part that costs money or wakes the endpoint — disabled by default.
+# MAGIC   the only part that costs money or wakes the endpoint — enabled here since
+# MAGIC   this run is specifically to capture live-latency evidence.
 # MAGIC - The endpoint's config has no AI Gateway block (rate limits, guardrails, usage
 # MAGIC   tracking) attached — confirmed from the raw `GET /api/2.0/serving-endpoints/...`
 # MAGIC   response, which has no `ai_gateway` key. Whether any separate alerting is

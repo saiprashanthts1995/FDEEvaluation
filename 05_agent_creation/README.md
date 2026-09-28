@@ -48,11 +48,20 @@ Every Databricks resource the agent depends on (the LLM endpoint, the vector ind
 
 | Scenario | Status |
 |---|---|
-| 1. First Tool-Calling Agent (single UC function tool) | Not rebuilt as a separate step — the ported `agent.py` is the actual final multi-tool version, not a from-scratch progression. `03_agent_evaluation.py`'s rows 1–3 (each targeting exactly one tool) substitute for "does it decide when to call a tool vs. answer directly." |
-| 2. Multi-Tool Composition | Done — 3 tools (vector search + 2 UC functions) — see the Genie gap below for a fourth tool that isn't wired in. |
-| 3. Evaluation Before Trust | Done — `03_agent_evaluation.py`, 10 questions, 4 scorers. |
-| 4. Tracing and Root Cause Analysis | Done — `04_tracing_and_root_cause.py`, against a local broken instance rather than the live endpoint. |
-| 5. Deployment and Monitoring | Done — `05_deployment_monitoring.py`, endpoint status, live request latency, and MLflow trace pull. |
+| 1. First Tool-Calling Agent (single UC function tool) | Not rebuilt as a separate step — the ported `agent.py` is the actual final multi-tool version, not a from-scratch progression. Confirmed the agent decides when to call a tool vs. answer directly: it correctly routed a product question to `product_index`, a policy question to `get_policy_details`, and answered an off-domain question with neither (see the three `05-agent-*.png` screenshots). |
+| 2. Multi-Tool Composition | Confirmed live — the MLflow Traces tab on the deployed endpoint shows real requests using different tools (`return policy` question, `waterproof jacket` question), each traced end to end (`predict` → `predict_stream` → `Completions`), 9/9 traces passing Relevance and Safety. See the Genie gap below for a fourth tool that isn't wired in. |
+| 3. Evaluation Before Trust | `03_agent_evaluation.py` is written (10 questions, 4 scorers, deliberately includes cases likely to fail) and unblocked now that the `restartPython()` fix landed — running it and capturing `01`/`02`/`07` is the next step. |
+| 4. Tracing and Root Cause Analysis | `04_tracing_and_root_cause.py` is written and unblocked by the same fix — running it and capturing `08` is the next step. |
+| 5. Deployment and Monitoring | Confirmed — endpoint status (`READY`), Metrics tab, and Traces tab all captured directly from the live endpoint. `05_deployment_monitoring.py`'s optional live-latency measurement (`10`) not yet captured separately. |
+
+## Confirmed From the Live Endpoint
+
+Captured directly from Catalog Explorer and the Serving endpoint's own UI — no notebook needed:
+
+- **Registered model**: `uc_agentic_ai.agentic_ai_schema.sai_agent_model`, Version 1, owned by Sai T S, linked to the live serving endpoint.
+- **Endpoint status**: `Ready`, `CPU (4 GB/worker)`, scaled to zero between requests, 100% traffic to `sai_agent_model_1`.
+- **Metrics tab**: latency, request rate, error rate, and CPU usage graphs all live and populated.
+- **Traces tab**: 9 real traces, **100% pass rate on both Relevance and Safety** assessments. Includes the off-domain "What is the capital of France?" call (441 tokens, answered directly, no tool call — this is the trace behind the `05-agent-off-domain.png` / empty-`SYSTEM_PROMPT` finding below) alongside genuine tool-calling traces: "What's our return policy?" (1,133–1,138 tokens) and "What's a good waterproof jacket for hiking?" (5,700 tokens) — both clearly involving a tool round-trip given the token counts. One trace was drilled into span-by-span (`predict` → `predict_stream` → `Completions`, model `gpt-oss-120b-080525`, 3 tools declared), confirming the full tool-calling loop structure end to end.
 
 ## Known Gaps (found while porting, not fixed silently)
 
@@ -61,10 +70,16 @@ Every Databricks resource the agent depends on (the LLM endpoint, the vector ind
 
 ## Running It
 
-1. Confirm `04_rag/notebooks/01_build_agent_tools.py` has been run (both UC functions exist — they already do, confirmed live) and `03_vector_database`'s `product_index` is healthy (confirmed via `02_verify_product_vector_index.py`).
-2. Import both files in `notebooks/` into the same Databricks workspace folder (`agent.py` must be importable as a local module from `deploy_agent.py`).
-3. Run `deploy_agent.py` top to bottom to reproduce the log → evaluate → register → deploy flow. Since `sai_agent_model` version 1 already exists and is deployed, re-running this will register a new version and redeploy — a real change, not a no-op, so only do this intentionally.
-4. Query the live endpoint from AI Playground, or `POST /serving-endpoints/agents_uc_agentic_ai-agentic_ai_schema-sai_agent_model/invocations`.
+Both UC functions (`04_rag/notebooks/01_build_agent_tools.py`) and the vector index (`03_vector_database`'s `product_index`) are confirmed live and healthy — this agent already depends on working infrastructure.
+
+`deploy_agent.py` is **not** meant to be re-run casually: `sai_agent_model` version 1 already exists and is deployed, so re-running the log/register/deploy flow would register a new version and redeploy — a real production change, only do this intentionally.
+
+What's left to capture:
+1. `03_agent_evaluation.py` — run top to bottom for `01-mlflow-run.png`, `02-evaluation-results.png`, `07-broken-eval-rows.png`.
+2. `04_tracing_and_root_cause.py` — run for `08-root-cause-trace.png`.
+3. `05_deployment_monitoring.py` with `RUN_LIVE_REQUESTS = True` — for `10-live-request-latency.png`.
+
+All three are unblocked now (the missing `dbutils.library.restartPython()` cell before `from agent import AGENT` was the actual blocker, fixed in all affected notebooks).
 
 ## Evidence
 
