@@ -1,0 +1,13 @@
+employee_id,department_id,job_title,location,hire_date,employment_status
+E1001,D001,People Operations Partner,Seattle,2021-03-15,Active
+E1002,D001,Recruiting Coordinator,Portland,2023-07-10,Active
+E1003,D001,HR Systems Analyst,Seattle,2024-02-12,Active
+E1004,D002,Software Engineer,Austin,2020-11-02,Active
+E1005,D002,Data Engineer,Seattle,2022-05-16,Active
+E1006,D002,QA Engineer,Denver,2024-08-19,On Leave
+E1007,D003,Account Executive,Chicago,2021-09-27,Active
+E1008,D003,Sales Operations Analyst,Chicago,2022-01-31,Active
+E1009,D003,Regional Sales Manager,Denver,2019-06-03,Active
+E1010,D004,Support Specialist,Austin,2023-04-24,Active
+E1011,D004,Support Specialist,Portland,2024-06-17,Active
+E1012,D004,Support Team Lead,Seattle,2020-12-07,Former
