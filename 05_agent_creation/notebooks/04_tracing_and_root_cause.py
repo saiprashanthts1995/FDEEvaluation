@@ -24,6 +24,10 @@
 
 # COMMAND ----------
 
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import mlflow
 
 mlflow.openai.autolog()

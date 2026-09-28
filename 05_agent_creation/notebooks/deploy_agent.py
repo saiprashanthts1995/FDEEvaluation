@@ -39,6 +39,10 @@
 
 # COMMAND ----------
 
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 from agent import AGENT
 
 AGENT.predict(

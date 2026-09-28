@@ -24,7 +24,7 @@
 
 # COMMAND ----------
 
-print(1)
+dbutils.library.restartPython()
 
 # COMMAND ----------
 
