@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # Lightweight Evidence, Batch 2
 # MAGIC
@@ -144,7 +148,7 @@ print(f"Match: {indexed_count == live_count}")
 
 import time
 
-RUN_FRESHNESS_TEST = False  # flip deliberately — writes and deletes a test row
+RUN_FRESHNESS_TEST = True  # flip deliberately — writes and deletes a test row
 
 if RUN_FRESHNESS_TEST:
     test_id = "TEST-FRESHNESS-9999"
@@ -192,7 +196,7 @@ else:
 
 # COMMAND ----------
 
-RUN_DIRECT_ACCESS_DEMO = False  # flip deliberately — creates a small second index
+RUN_DIRECT_ACCESS_DEMO = True  # flip deliberately — creates a small second index
 
 if RUN_DIRECT_ACCESS_DEMO:
     direct_index_name = f"{catalog}.{schema}.product_direct_access_demo"
