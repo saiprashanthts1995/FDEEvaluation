@@ -52,7 +52,7 @@ Every Databricks resource the agent depends on (the LLM endpoint, the vector ind
 | 2. Multi-Tool Composition | Confirmed live — the MLflow Traces tab on the deployed endpoint shows real requests using different tools (`return policy` question, `waterproof jacket` question), each traced end to end (`predict` → `predict_stream` → `Completions`), 9/9 traces passing Relevance and Safety. See the Genie gap below for a fourth tool that isn't wired in. |
 | 3. Evaluation Before Trust | Run — `03_agent_evaluation.py`, 10 questions, 4 scorers, real MLflow evaluation run logged. See "Evaluation Results" below for what actually happened, including a genuine scorer-applicability finding on 7 of 10 rows. |
 | 4. Tracing and Root Cause Analysis | Run — `04_tracing_and_root_cause.py`. Found something more interesting than the notebook was designed to demonstrate; see "Root Cause: What Actually Happened" below. |
-| 5. Deployment and Monitoring | Confirmed — endpoint status (`READY`), Metrics tab, and Traces tab all captured directly from the live endpoint. `05_deployment_monitoring.py`'s live-latency measurement (`10`) is the last item, ready to run (`RUN_LIVE_REQUESTS = True` already set). |
+| 5. Deployment and Monitoring | Run — `05_deployment_monitoring.py`, all 3 sections. Endpoint confirmed `READY`, 3 live requests sent with **zero cold-start retries needed** (4.53s / 4.30s / 1.17s), traces pulled programmatically and cross-checked against the live Traces tab (15 traces total, including this run's). |
 
 ## Confirmed From the Live Endpoint
 
@@ -61,7 +61,8 @@ Captured directly from Catalog Explorer and the Serving endpoint's own UI — no
 - **Registered model**: `uc_agentic_ai.agentic_ai_schema.sai_agent_model`, Version 1, owned by Sai T S, linked to the live serving endpoint.
 - **Endpoint status**: `Ready`, `CPU (4 GB/worker)`, scaled to zero between requests, 100% traffic to `sai_agent_model_1`.
 - **Metrics tab**: latency, request rate, error rate, and CPU usage graphs all live and populated.
-- **Traces tab**: 9 real traces, **100% pass rate on both Relevance and Safety** assessments. Includes the off-domain "What is the capital of France?" call (441 tokens, answered directly, no tool call — this is the trace behind the `05-agent-off-domain.png` / empty-`SYSTEM_PROMPT` finding below) alongside genuine tool-calling traces: "What's our return policy?" (1,133–1,138 tokens) and "What's a good waterproof jacket for hiking?" (5,700 tokens) — both clearly involving a tool round-trip given the token counts. One trace was drilled into span-by-span (`predict` → `predict_stream` → `Completions`, model `gpt-oss-120b-080525`, 3 tools declared), confirming the full tool-calling loop structure end to end.
+- **Traces tab**: 15 real traces (as of the last capture), **100% pass rate on both Relevance and Safety** assessments. Includes multiple runs of the off-domain "What is the capital of France?" call (~440 tokens, answered directly, no tool call — the trace behind the `05-agent-off-domain.png` / empty-`SYSTEM_PROMPT` finding below) alongside genuine tool-calling traces across three separate sessions (`lightweight-evi...`, `quota-test-retry`, `monitoring-de...`): "What's our return policy?" (1,081–1,228 tokens) and "What's a good waterproof jacket for hiking?" (4,431–6,242 tokens) — both clearly involving a tool round-trip given the token counts. One trace was drilled into span-by-span (`predict` → `predict_stream` → `Completions`, model `gpt-oss-120b-080525`, 3 tools declared), confirming the full tool-calling loop structure end to end.
+- **Live request latency** (`05_deployment_monitoring.py`, run directly against the endpoint): 3 real requests, **zero cold-start retries needed** — 4.53s (waterproof jacket, cold), 4.30s (return policy, warm), 1.17s (capital of France, warm). The notebook's retry-with-backoff wrapper (added after an earlier run did hit the transient free-tier "maximum request limit" cold-start race) wasn't needed this time, confirming that failure mode is intermittent, not systemic.
 
 ## Evaluation Results
 
@@ -92,12 +93,9 @@ This is the same root issue as the empty-`SYSTEM_PROMPT` finding above, showing 
 
 Both UC functions (`04_rag/notebooks/01_build_agent_tools.py`) and the vector index (`03_vector_database`'s `product_index`) are confirmed live and healthy — this agent already depends on working infrastructure.
 
+`03_agent_evaluation.py`, `04_tracing_and_root_cause.py`, and `05_deployment_monitoring.py` have all been run — see "Evaluation Results" and "Root Cause: What Actually Happened" above for what came out of them.
+
 `deploy_agent.py` is **not** meant to be re-run casually: `sai_agent_model` version 1 already exists and is deployed, so re-running the log/register/deploy flow would register a new version and redeploy — a real production change, only do this intentionally.
-
-What's left to capture:
-1. `05_deployment_monitoring.py` (already set to `RUN_LIVE_REQUESTS = True`) — for `10-live-request-latency.png`.
-
-That's the only item remaining. `04_tracing_and_root_cause.py` has been run — see "Root Cause: What Actually Happened" above.
 
 ## Evidence
 
