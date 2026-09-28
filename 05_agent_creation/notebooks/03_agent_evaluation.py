@@ -20,7 +20,6 @@
 # COMMAND ----------
 
 # MAGIC %pip install -U -qqqq backoff databricks-openai uv databricks-agents mlflow-skinny[databricks]
-# MAGIC dbutils.library.restartPython()
 
 # COMMAND ----------
 

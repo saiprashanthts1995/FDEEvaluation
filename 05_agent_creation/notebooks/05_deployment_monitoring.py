@@ -2,6 +2,9 @@
 # /// script
 # [tool.databricks.environment]
 # environment_version = "6"
+# dependencies = [
+#   "databricks-sdk[openai]",
+# ]
 # ///
 # MAGIC %md
 # MAGIC # Deployment Status and Monitoring
@@ -31,6 +34,10 @@ mlflow_experiment_id = "2179939438147551"  # confirmed live via GET /api/2.0/ser
 
 # MAGIC %md
 # MAGIC ## 1. Endpoint status and config (read-only)
+
+# COMMAND ----------
+
+# MAGIC %pip install databricks-sdk[openai]
 
 # COMMAND ----------
 
