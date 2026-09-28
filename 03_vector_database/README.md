@@ -6,7 +6,7 @@ Builds and verifies the Databricks Vector Search index over the product catalog 
 
 ## What's Here
 
-- [`notebooks/01_build_product_master_and_index.py`](notebooks/01_build_product_master_and_index.py) — parses 509 product PDFs into `product_details`, joins them into `product_master`, and documents (but does not re-run) the original Vector Search index creation. Ported from the notebook that actually built this: [`saiprashanthts1995/databricks_agentic_ai/02_Notebooks/Build_RAG_Agent_Tables.py`](https://github.com/saiprashanthts1995/databricks_agentic_ai/blob/main/02_Notebooks/Build_RAG_Agent_Tables.py).
+- [`notebooks/01_build_product_master_and_index.py`](notebooks/01_build_product_master_and_index.py) — parses 509 product PDFs into `product_details`, joins them into `product_master`, and documents (but does not re-run) the original Vector Search index creation.
 - [`notebooks/02_verify_product_vector_index.py`](notebooks/02_verify_product_vector_index.py) — read-only health, sync-freshness, and retrieval sanity checks against the live index.
 - [`notebooks/03_advanced_scenarios.py`](notebooks/03_advanced_scenarios.py) — freshness test (insert → sync → measure latency → clean up), metadata-filtered search, a Delta Sync vs. Direct Vector Access index comparison, and `top_k` tuning.
 

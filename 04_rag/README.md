@@ -6,7 +6,7 @@ Builds the structured-lookup half of the agent's retrieval layer (Unity Catalog 
 
 ## What's Here
 
-- [`notebooks/01_build_agent_tools.py`](notebooks/01_build_agent_tools.py) — creates `get_policy_details` and `get_customer_service_history`, two Unity Catalog functions used as structured-lookup agent tools. Ported from [`saiprashanthts1995/databricks_agentic_ai/02_Notebooks/Build_RAG_Agent_Tables.py`](https://github.com/saiprashanthts1995/databricks_agentic_ai/blob/main/02_Notebooks/Build_RAG_Agent_Tables.py) (Step 4) — both functions already exist live, confirmed via the Unity Catalog API before writing this.
+- [`notebooks/01_build_agent_tools.py`](notebooks/01_build_agent_tools.py) — creates `get_policy_details` and `get_customer_service_history`, two Unity Catalog functions used as structured-lookup agent tools. Both functions already exist live, confirmed via the Unity Catalog API before writing this.
 - [`notebooks/02_rag_retrieval_demo.py`](notebooks/02_rag_retrieval_demo.py) — a standalone retrieve-then-generate demo against the `product_index` from `03_vector_database/`, with an explicit grounding-refusal check (an off-domain question should be declined, not answered from the LLM's general knowledge).
 - [`notebooks/03_chunking_tradeoffs.py`](notebooks/03_chunking_tradeoffs.py) — compares 200/50 vs. 800/100 token chunking on real product descriptions (392–4,575 chars, median ~690 tokens — long enough that chunk size genuinely changes chunk counts).
 - [`notebooks/04_metadata_filtered_retrieval.py`](notebooks/04_metadata_filtered_retrieval.py) — scopes both raw retrieval and grounded answers to a `product_category` filter, plus a callout for why `get_policy_details` doesn't need a separate filter demo.

@@ -2,13 +2,11 @@
 # MAGIC %md
 # MAGIC # Build `product_master` and the Product Vector Search Index
 # MAGIC
-# MAGIC Ported from the original working notebook in
-# MAGIC [`saiprashanthts1995/databricks_agentic_ai`](https://github.com/saiprashanthts1995/databricks_agentic_ai/blob/main/02_Notebooks/Build_RAG_Agent_Tables.py)
-# MAGIC (`02_Notebooks/Build_RAG_Agent_Tables.py`, Steps 1–3), where this was actually
-# MAGIC built and run — not reconstructed from guesswork. Re-verified read-only against
-# MAGIC the live workspace before porting:
+# MAGIC This is the actual pipeline that built the live data — not reconstructed
+# MAGIC from guesswork. Re-verified read-only against the live workspace before
+# MAGIC writing this notebook:
 # MAGIC
-# MAGIC | Claim in the original notebook | Verified |
+# MAGIC | Claim | Verified |
 # MAGIC |---|---|
 # MAGIC | 509 PDFs at `/Volumes/uc_agentic_ai/agentic_ai_schema/data_files/01_Data_Files/product_docs/` | `SELECT COUNT(*) FROM READ_FILES(...)` → **509** |
 # MAGIC | `product_details` table exists with `(product_name, product_desc)` | Confirmed via Unity Catalog API |

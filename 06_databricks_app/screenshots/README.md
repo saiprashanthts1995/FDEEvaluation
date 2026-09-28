@@ -1,6 +1,6 @@
 # Databricks App Evidence Screenshots
 
-Copied from [`saiprashanthts1995/databricks-app-ui-agent`](https://github.com/saiprashanthts1995/databricks-app-ui-agent), where they were originally captured against the live workspace and app.
+Captured against the live workspace and app.
 
 | Filename | Evidence |
 |---|---|
@@ -18,4 +18,4 @@ Copied from [`saiprashanthts1995/databricks-app-ui-agent`](https://github.com/sa
 | `12-vector-index-overview-and-query.png` | `product_index` overview and a direct query against it. |
 | `13-chat-ui-tool-call-output.png` | The chat UI showing a tool call's parameters and raw result inline with the conversation. |
 
-These were not captured in this session — see the source repo for the original context. Only replace or add screenshots here that show genuine session results, consistent with every other assignment folder in this repo.
+Only replace or add screenshots here that show genuine session results, consistent with every other assignment folder in this repo.

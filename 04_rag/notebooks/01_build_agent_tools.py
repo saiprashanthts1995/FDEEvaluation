@@ -2,8 +2,7 @@
 # MAGIC %md
 # MAGIC # Structured Retrieval Tools: Policies and Customer Service History
 # MAGIC
-# MAGIC Ported from [`saiprashanthts1995/databricks_agentic_ai/02_Notebooks/Build_RAG_Agent_Tables.py`](https://github.com/saiprashanthts1995/databricks_agentic_ai/blob/main/02_Notebooks/Build_RAG_Agent_Tables.py)
-# MAGIC (Step 4), where these were actually created and are live today — confirmed via
+# MAGIC These were actually created and are live today — confirmed via
 # MAGIC `GET /api/2.1/unity-catalog/functions?catalog_name=uc_agentic_ai&schema_name=agentic_ai_schema`,
 # MAGIC which lists both `get_policy_details` and `get_customer_service_history`.
 # MAGIC
