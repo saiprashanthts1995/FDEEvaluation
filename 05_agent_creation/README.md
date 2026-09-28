@@ -50,8 +50,8 @@ Every Databricks resource the agent depends on (the LLM endpoint, the vector ind
 |---|---|
 | 1. First Tool-Calling Agent (single UC function tool) | Not rebuilt as a separate step — the ported `agent.py` is the actual final multi-tool version, not a from-scratch progression. Confirmed the agent decides when to call a tool vs. answer directly: it correctly routed a product question to `product_index`, a policy question to `get_policy_details`, and answered an off-domain question with neither (see the three `05-agent-*.png` screenshots). |
 | 2. Multi-Tool Composition | Confirmed live — the MLflow Traces tab on the deployed endpoint shows real requests using different tools (`return policy` question, `waterproof jacket` question), each traced end to end (`predict` → `predict_stream` → `Completions`), 9/9 traces passing Relevance and Safety. See the Genie gap below for a fourth tool that isn't wired in. |
-| 3. Evaluation Before Trust | `03_agent_evaluation.py` is written (10 questions, 4 scorers, deliberately includes cases likely to fail) and unblocked now that the `restartPython()` fix landed — running it and capturing `01`/`02`/`07` is the next step. |
-| 4. Tracing and Root Cause Analysis | `04_tracing_and_root_cause.py` is written and unblocked by the same fix — running it and capturing `08` is the next step. |
+| 3. Evaluation Before Trust | Run — `03_agent_evaluation.py`, 10 questions, 4 scorers, real MLflow evaluation run logged. See "Evaluation Results" below for what actually happened, including a genuine scorer-applicability finding on 7 of 10 rows. |
+| 4. Tracing and Root Cause Analysis | `04_tracing_and_root_cause.py` is written and unblocked by the `restartPython()` fix — running it and capturing `08` is the next step. |
 | 5. Deployment and Monitoring | Confirmed — endpoint status (`READY`), Metrics tab, and Traces tab all captured directly from the live endpoint. `05_deployment_monitoring.py`'s optional live-latency measurement (`10`) not yet captured separately. |
 
 ## Confirmed From the Live Endpoint
@@ -62,6 +62,16 @@ Captured directly from Catalog Explorer and the Serving endpoint's own UI — no
 - **Endpoint status**: `Ready`, `CPU (4 GB/worker)`, scaled to zero between requests, 100% traffic to `sai_agent_model_1`.
 - **Metrics tab**: latency, request rate, error rate, and CPU usage graphs all live and populated.
 - **Traces tab**: 9 real traces, **100% pass rate on both Relevance and Safety** assessments. Includes the off-domain "What is the capital of France?" call (441 tokens, answered directly, no tool call — this is the trace behind the `05-agent-off-domain.png` / empty-`SYSTEM_PROMPT` finding below) alongside genuine tool-calling traces: "What's our return policy?" (1,133–1,138 tokens) and "What's a good waterproof jacket for hiking?" (5,700 tokens) — both clearly involving a tool round-trip given the token counts. One trace was drilled into span-by-span (`predict` → `predict_stream` → `Completions`, model `gpt-oss-120b-080525`, 3 tools declared), confirming the full tool-calling loop structure end to end.
+
+## Evaluation Results
+
+`03_agent_evaluation.py` was run against the local `AGENT` object with all 4 scorers. Aggregate metrics: `relevance_to_query` 100%, `safety` 100%, `retrieval_groundedness` 100%, `retrieval_relevance` 93.3% — but those last two numbers are only meaningful for the rows they actually apply to, which is the real finding here:
+
+**`RetrievalGroundedness`/`RetrievalRelevance` only scored cleanly on the 3 turns that used the vector search tool** (the waterproof-jacket question and its variants, headphones question) — Turn 1 passed 3/3 groundedness and 14/15 relevance checks, Turn 7 similarly. **The other 7 turns — every one that routed to a UC function instead (`get_policy_details`, `get_customer_service_history`) or correctly declined (off-domain, unsafe, no-match) — show `Error`, not `Pass` or `Fail`, on those two scorers**, because there's no retrieval span for a UC-function or no-tool-call turn to evaluate against. The evaluation harness's own log confirms this isn't a crash: *"Some scorer invocations failed during evaluation. Failure summary: 'retrieval_groundedness': 7/10 failed, 'retrieval_relevance': 7/10 failed."*
+
+This is expected behavior for retrieval-specific scorers applied to a mixed-tool agent, not a bug in the eval set or the agent — but it does mean the 93.3%/100% aggregate numbers are effectively computed over an n of 3, not 10, and shouldn't be read as "the agent is 93% grounded across all its capabilities." A more complete evaluation would need separate scorers (or a custom one) for the UC-function turns — checking that the *answer* matches the *tool result*, not that a retrieval happened — which these 4 stock scorers don't cover. Worth adding before leaning on this eval set as a regression gate.
+
+One real per-row result, not just an aggregate artifact: **Turn 2** ("I want a waterproof jacket — what's the return policy if it doesn't fit?", the multi-tool-composition test) passed Relevance and Groundedness but **failed Retrieval Relevance** — worth a closer look at that specific trace before trusting multi-tool answers generally.
 
 ## Known Gaps (found while porting, not fixed silently)
 
@@ -75,11 +85,10 @@ Both UC functions (`04_rag/notebooks/01_build_agent_tools.py`) and the vector in
 `deploy_agent.py` is **not** meant to be re-run casually: `sai_agent_model` version 1 already exists and is deployed, so re-running the log/register/deploy flow would register a new version and redeploy — a real production change, only do this intentionally.
 
 What's left to capture:
-1. `03_agent_evaluation.py` — run top to bottom for `01-mlflow-run.png`, `02-evaluation-results.png`, `07-broken-eval-rows.png`.
-2. `04_tracing_and_root_cause.py` — run for `08-root-cause-trace.png`.
-3. `05_deployment_monitoring.py` with `RUN_LIVE_REQUESTS = True` — for `10-live-request-latency.png`.
+1. `04_tracing_and_root_cause.py` — run for `08-root-cause-trace.png`.
+2. `05_deployment_monitoring.py` (already set to `RUN_LIVE_REQUESTS = True`) — for `10-live-request-latency.png`.
 
-All three are unblocked now (the missing `dbutils.library.restartPython()` cell before `from agent import AGENT` was the actual blocker, fixed in all affected notebooks).
+Both are unblocked (the missing `dbutils.library.restartPython()` cell before `from agent import AGENT` was the actual blocker for notebooks that import `agent.py`, fixed in all affected notebooks; `05_deployment_monitoring.py` never needed it since it talks to the endpoint via `WorkspaceClient` directly).
 
 ## Evidence
 
