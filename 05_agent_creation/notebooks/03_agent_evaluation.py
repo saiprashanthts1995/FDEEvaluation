@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # Agent Evaluation: 10 Questions, 4 Scorers, Documented Failures
 # MAGIC
