@@ -2,7 +2,7 @@
 
 Six assignments building a Databricks-based agentic AI solution end to end: Claude Code workflows, conversational analytics, vector search, retrieval-augmented generation, a tool-calling agent, and a chat UI in front of it.
 
-**[Open `architecture.html`](architecture.html) for the full end-to-end flow diagram** (download/clone and open in a browser — it's a self-contained page, no build step, dark-mode aware).
+**See [`architecture.md`](architecture.md) for the full end-to-end flow diagram** (renders directly on GitHub, including the Mermaid flowchart).
 
 ## Two Use Cases, By Design
 
@@ -26,7 +26,7 @@ Each folder's own `README.md` documents what was actually built, why, and any kn
 ## Repository Layout
 
 ```
-architecture.html              End-to-end flow diagram — open in a browser
+architecture.md                End-to-end flow diagram (Mermaid, renders on GitHub)
 CLAUDE.md                      Product spec for the Workforce Insights use case + repo-wide standards
 shared_data/                   Synthetic HR tables and documents (assignment 1's data)
 product_catalog_data/          Raw source data behind uc_agentic_ai.agentic_ai_schema (assignments 2–6's data)
