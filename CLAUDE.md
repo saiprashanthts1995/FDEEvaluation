@@ -1,5 +1,11 @@
 # Workforce Insights and HR Policy Assistant
 
+## Repository Scope
+
+This repository hosts a series of standalone FDE assignment exercises, numbered as top-level folders (`01_claude_code/`, `02_genie_space/`, ...). This CLAUDE.md describes the **Workforce Insights and HR Policy Assistant** product — the primary use case, built on the synthetic HR data under `shared_data/`, and the one `01_claude_code/` implements end to end.
+
+Later assignments may intentionally use a different use case or data source when the exercise calls for it (for example, `02_genie_space/` builds a Genie Space over a pre-existing product-catalog/customer-service dataset already in Unity Catalog, rather than ingesting the workforce CSVs). When an assignment folder diverges like this, its own `README.md` documents the use case and data source it actually used — treat that folder's README as authoritative for that folder, and this file as authoritative for the Workforce Insights use case and for engineering/collaboration standards that apply repo-wide.
+
 ## Product Purpose
 
 Help HR analysts and department managers explore governed workforce information and find reliable answers in the company's HR procedures.
