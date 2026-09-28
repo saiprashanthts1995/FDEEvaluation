@@ -76,21 +76,27 @@ Catalog: `uc_agentic_ai` · Schema: `agentic_ai_schema`
 
    ![Row filter created and applied](screenshots/11-row-filter-applied.png)
 
+9. **Break and fix.** Asked the space *"What's popular?"* before adding any defining instruction — Genie correctly refused to commit to an answer rather than guessing: *"Without the query results, I cannot provide a data-backed answer about which products are most popular... would you like me to wait, or a different approach?"* Then added the instruction *"'Top' or 'popular' products means the products with the most rows in `cust_service_data`... not highest price or largest quantity"* under Configure → Instructions and saved it. Re-asking the same question in the same conversation now produces a definitive, correctly-grounded breakdown by interaction count (Billing 213, Account Management 205, Product Inquiry 202, Technical Support 193, Feedback 187, Returns 23) — the ambiguity is gone because the term is now defined instead of left to the model to guess.
+
+   ![Break and fix: before and after adding the instruction](screenshots/12-break-and-fix.png)
+
+10. **Governance check, full access.** Asked the space *"tell me how much record count in cust_service_data"* as the table owner, post-filter — correctly returned all 1,023 records, confirming the row filter (step 8) doesn't accidentally restrict the owner's own access.
+
+    ![Governance: full-access answer](screenshots/13-governance-full-access.png)
+
 ## Scenario Coverage
 
 | Scenario | Status |
 |---|---|
-| 1. Build a Genie Space with metadata/instructions | Done — space built with 5 tables. **Gap:** no evidence was captured of adding table/column descriptions or sample instructions in the space's Configure panel — see "Still Needs Your Hands" below. |
-| 2. Break and Fix (ambiguous question → improve metadata → verify fix) | **Not done** — see below. |
-| 3. Governance Validation (two user identities, different access levels) | Partially done — the row filter is built **and applied** (`cust_service_row_filter` on `cust_service_data`, owner sees all rows, everyone else sees none). Verified the owner still sees all 1,023 rows post-filter. **Testing it as a second, restricted identity still needs your hands** — see below. |
+| 1. Build a Genie Space with metadata/instructions | Done — space built with 5 tables, instructions added and saved (see `07-space-instructions.png`). |
+| 2. Break and Fix (ambiguous question → improve metadata → verify fix) | Done — see step 9 above. |
+| 3. Governance Validation (two user identities, different access levels) | Row filter built, applied, and verified from the owner's side (step 8, step 10). **The second-identity half is a known, permanent limitation of this workspace** — this is a single-user Databricks workspace with no second identity available to grant restricted access to, so the "ask as a restricted user" half of this scenario cannot be completed here. Documented as an open item rather than silently skipped. |
 | 4. Programmatic Access (Genie API) | Done — [`notebooks/genie_api_conversation.py`](notebooks/genie_api_conversation.py), using the real space ID (`01f1bae472291ce6bf70a6de27869978`, confirmed via `GET /api/2.0/genie/spaces`) to start a conversation, retrieve generated SQL, and ask a context-carrying follow-up, entirely through the SDK/REST API. |
 | 5. Business Handoff documentation | Done — this README's "How It Was Built" section documents scope, datasets, and the PII decision on `cust_service_data`. |
 
-### Still Needs Your Hands
+### Known Open Item
 
-Two scenarios need something I don't have: a second Databricks user identity, and your own judgment call about what "ambiguous" means for this domain. Both are genuinely more valuable done by you than faked by me.
-
-**Break and Fix** — ask the Genie Space a deliberately ambiguous question (e.g. *"what's popular?"* or *"show me the top products"* — ambiguous because "popular"/"top" isn't defined anywhere: by count? by category? by price?). Screenshot the confused/wrong answer. Then go to **Configure → Instructions** and add a sample instruction defining the term (e.g. *"'popular products' means the products with the most customer service interactions in `cust_service_data`, joined on product mentions"* — or whatever definition you actually want). Re-ask the same question and screenshot the corrected answer.
+**Governance Validation (restricted-identity half)** — this workspace has only one Databricks identity (the account owner's), so there's no second user or service principal to grant restricted `cust_service_data` access to and test against. The row filter itself is real and live (verified in step 8/10); what's untested is specifically its effect on a *different* principal, since none exists in this workspace to test with. If a second identity becomes available later, re-run the check described in `row_level_security.py` §4.
 
 **Governance Validation** — the row filter is live on `cust_service_data`. What's left: (1) grant a second user/service principal `SELECT` on `uc_agentic_ai.agentic_ai_schema.cust_service_data`, and (2) have that identity ask the Genie Space a question touching `cust_service_data`. Screenshot both: your own (full-access) answer, and the restricted identity's response (should fail or return zero rows, not silently return everything). If a second identity isn't practical to set up right now, this scenario is honestly still open — say so rather than skip the screenshot silently.
 
