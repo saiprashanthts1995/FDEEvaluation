@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # Deployment Status and Monitoring
 # MAGIC
@@ -105,6 +109,8 @@ else:
         print(f"  {trace['timestamp_ms']}  status={trace['status']}  duration_ms={trace.get('execution_time_ms', 'n/a')}")
 
 # COMMAND ----------
+
+
 
 # COMMAND ----------
 

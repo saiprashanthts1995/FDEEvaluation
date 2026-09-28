@@ -24,6 +24,10 @@
 
 # COMMAND ----------
 
+print(1)
+
+# COMMAND ----------
+
 from agent import AGENT
 
 # COMMAND ----------
