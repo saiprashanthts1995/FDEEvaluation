@@ -29,6 +29,7 @@ Each folder's own `README.md` documents what was actually built, why, and any kn
 architecture.html              End-to-end flow diagram — open in a browser
 CLAUDE.md                      Product spec for the Workforce Insights use case + repo-wide standards
 shared_data/                   Synthetic HR tables and documents (assignment 1's data)
+product_catalog_data/          Raw source data behind uc_agentic_ai.agentic_ai_schema (assignments 2–6's data)
 lightweight_evidence_3_4_5.py  Zero-install REST/SQL notebook covering core evidence for assignments 3–5
 lightweight_evidence_batch2.py Companion notebook covering the remaining assignment 3/4 scenarios
 01_claude_code/                Claude Code workflow evidence

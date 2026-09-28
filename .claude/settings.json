@@ -3,7 +3,6 @@
     "allow": [
       "Bash(git mv *)",
       "Bash(export DATABRICKS_HOST=\"https://dbc-12598460-8cc9.cloud.databricks.com\")",
-      "Bash(export DATABRICKS_TOKEN=\"***REMOVED-ROTATED-TOKEN***\")",
       "Bash(curl -s -H 'Authorization: Bearer __TRACKED_VAR__' https://dbc-12598460-8cc9.cloud.databricks.com/api/2.1/unity-catalog/catalogs)",
       "Bash(md5 7.png 8.png)",
       "Bash(cp /private/tmp/claude-501/-Users-saiprashanththalanayarswaminathan-Documents-GitHub-FDEEvaluation/d170ef91-8b01-42f5-95e7-987880ec7cc0/images/2.png /Users/saiprashanththalanayarswaminathan/Documents/GitHub/FDEEvaluation/02_genie_space/screenshots/01-policy-question-answer.png)",
